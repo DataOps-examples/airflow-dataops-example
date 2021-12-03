@@ -1,0 +1,96 @@
+###
+
+# Get dag list
+GET http://localhost:8080/api/v1/dags
+Authorization: Basic dataops:dataops
+Accept: application/json
+
+###
+
+# Turn on the dag
+PATCH http://localhost:8080/api/v1/dags/tutorial
+Authorization: Basic dataops:dataops
+Content-Type: application/json
+
+{
+    "is_paused": false
+}
+
+###
+
+# Get connection list
+GET http://localhost:8080/api/v1/connections
+Authorization: Basic dataops:dataops
+Accept: application/json
+
+###
+
+# Create connection GEOLocation-data
+POST http://localhost:8080/api/v1/connections
+Authorization: Basic dataops:dataops
+Content-Type: application/json
+
+{
+    "connection_id" : "GEOLocation-data",
+    "conn_type"     : "http",
+    "host"          : "http://kong:8000/ibge-kml-municipios",
+    "login"         : null,
+    "schema"        : null,
+    "port"          : null,
+    "password"      : "",
+    "extra"         : null
+}
+
+###
+
+# Create connection Location-data
+POST http://localhost:8080/api/v1/connections
+Authorization: Basic dataops:dataops
+Content-Type: application/json
+
+{
+    "connection_id" : "Location-data",
+    "conn_type"     : "http",
+    "host"          : "http://kong:8000/ibge-api-municipios",
+    "login"         : null,
+    "schema"        : null,
+    "port"          : null,
+    "password"      : "",
+    "extra"         : null
+}
+
+###
+
+# Create connection Elasticsearch
+POST http://localhost:8080/api/v1/connections
+Authorization: Basic dataops:dataops
+Content-Type: application/json
+
+{
+    "connection_id" : "Elasticsearch",
+    "conn_type"     : "http",
+    "host"          : "http://kong:8000/elasticsearch",
+    "login"         : null,
+    "schema"        : null,
+    "port"          : null,
+    "password"      : "",
+    "extra"         : null
+}
+
+###
+
+# Delete connection Elasticsearch
+DELETE http://localhost:8080/api/v1/connections/Elasticsearch
+Authorization: Basic dataops:dataops
+
+###
+
+# Delete connection Location-data
+DELETE http://localhost:8080/api/v1/connections/Location-data
+Authorization: Basic dataops:dataops
+
+###
+
+# Delete connection GEOLocation-data
+DELETE http://localhost:8080/api/v1/connections/GEOLocation-data
+Authorization: Basic dataops:dataops

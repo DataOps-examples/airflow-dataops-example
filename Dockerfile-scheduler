@@ -1,0 +1,3 @@
+FROM docker.io/bitnami/airflow-scheduler:2.2.2-debian-10-r1
+
+USER root

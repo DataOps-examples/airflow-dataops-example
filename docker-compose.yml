@@ -1,0 +1,129 @@
+version: '3'
+
+services:
+  postgresql:
+    image: docker.io/bitnami/postgresql:10
+    volumes:
+      - 'postgresql_data:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_DATABASE=bitnami_airflow
+      - POSTGRESQL_USERNAME=bn_airflow
+      - POSTGRESQL_PASSWORD=bitnami1
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - dataops_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 1G
+  redis:
+    image: docker.io/bitnami/redis:6.0
+    volumes:
+      - 'redis_data:/bitnami'
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - dataops_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+  airflow-scheduler:
+    # TODO: to be reverted to use proper registry/distro on T39132
+    # image: docker.io/bitnami/airflow-scheduler:2
+    #image: docker.io/bitnami/airflow-scheduler:2.2.2-debian-10-r1
+    build:
+      context: .
+      dockerfile: Dockerfile-scheduler
+    environment:
+      - AIRFLOW_SECRET_KEY=Ga6LcFvCTyOhynMYBg8G
+      - AIRFLOW_DATABASE_NAME=bitnami_airflow
+      - AIRFLOW_DATABASE_USERNAME=bn_airflow
+      - AIRFLOW_DATABASE_PASSWORD=bitnami1
+      - AIRFLOW_EXECUTOR=CeleryExecutor
+      - AIRFLOW_WEBSERVER_HOST=airflow
+      - AIRFLOW_USERNAME=dataops
+      - AIRFLOW_PASSWORD=dataops
+      - AIRFLOW_LOAD_EXAMPLES=false
+    volumes:
+      - airflow_scheduler_data:/bitnami
+      - ./dags:/opt/bitnami/airflow/dags
+      - ./requirements.txt:/bitnami/python/requirements.txt
+    networks:
+      - dataops_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 1G
+  airflow-worker:
+    # TODO: to be reverted to use proper registry/distro on T39132
+    # image: docker.io/bitnami/airflow-worker:2
+    image: docker.io/bitnami/airflow-worker:2.2.2-debian-10-r1
+    environment:
+      - AIRFLOW_SECRET_KEY=Ga6LcFvCTyOhynMYBg8G
+      - AIRFLOW_DATABASE_NAME=bitnami_airflow
+      - AIRFLOW_DATABASE_USERNAME=bn_airflow
+      - AIRFLOW_DATABASE_PASSWORD=bitnami1
+      - AIRFLOW_EXECUTOR=CeleryExecutor
+      - AIRFLOW_WEBSERVER_HOST=airflow
+      - AIRFLOW_USERNAME=dataops
+      - AIRFLOW_PASSWORD=dataops
+      - AIRFLOW_LOAD_EXAMPLES=false
+    volumes:
+      - airflow_worker_data:/bitnami
+      - ./dags:/opt/bitnami/airflow/dags
+      - ./requirements.txt:/bitnami/python/requirements.txt
+    networks:
+      - dataops_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 1G
+  airflow:
+    image: docker.io/bitnami/airflow:2.2.2-debian-10-r1
+    environment:
+      - AIRFLOW_SECRET_KEY=Ga6LcFvCTyOhynMYBg8G
+      - AIRFLOW_DATABASE_NAME=bitnami_airflow
+      - AIRFLOW_DATABASE_USERNAME=bn_airflow
+      - AIRFLOW_DATABASE_PASSWORD=bitnami1
+      - AIRFLOW_EXECUTOR=CeleryExecutor
+      - AIRFLOW_USERNAME=dataops
+      - AIRFLOW_PASSWORD=dataops
+      - AIRFLOW_LOAD_EXAMPLES=false
+    ports:
+      - '8080:8080'
+    volumes:
+      - airflow_data:/bitnami
+      - ./dags:/opt/bitnami/airflow/dags
+      - ./airflow.cfg:/opt/bitnami/airflow/airflow.cfg
+      - ./requirements.txt:/bitnami/python/requirements.txt
+    networks:
+      - dataops_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 1G
+
+volumes:
+  airflow_scheduler_data:
+    driver: local
+  airflow_worker_data:
+    driver: local
+  airflow_data:
+    driver: local
+  postgresql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  dataops_net:
+    external:
+      name: dataops_net
